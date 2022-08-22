@@ -16,6 +16,7 @@
 	body {
 		background-color: cornsilk;
 		margin: 0px;
+		margin-top: 6px;
 
 	}
 	/* .nav a {
@@ -77,7 +78,7 @@
 </style>
 </head>
 <body>
-	<nav class="navbar navbar-expand-sm pt-1 pb-0 p-2 shadow-sm">
+	<nav class="navbar navbar-expand-sm pt-0 pb-0 p-2 shadow-sm">
 		<ul class="nav navbar-nav">
 			<li class="active"><a href="./" class="nav-link">Home</a></li>
 			<li><a href="create" class="nav-link">Create Blog Post</a></li>

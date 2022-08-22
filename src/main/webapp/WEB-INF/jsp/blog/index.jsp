@@ -80,7 +80,7 @@
 </style>
 </head>
 <body>
-	<nav class="navbar navbar-expand-sm pb-0 pt-0 shadow-sm">
+	<nav class="navbar navbar-expand-sm pb-0 pt-0 p-2 shadow-sm">
 		<ul class="nav navbar-nav">
 			<li class="active"><a href="./" class="nav-link">Home</a></li>
 			<li><a href="create" class="nav-link">Create Blog Post</a></li>

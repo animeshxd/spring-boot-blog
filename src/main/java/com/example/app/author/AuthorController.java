@@ -50,7 +50,7 @@ public class AuthorController {
 
 		// print(author.email, author.name, author.password, author.username);
 		
-		if (author.file.getContentType().contains("image")){
+		if (!author.file.getContentType().contains("image")){
 			
 			result.rejectValue("file", "file.invalid", "invalid file");
 			return "author/register.jsp";
@@ -64,7 +64,11 @@ public class AuthorController {
 			model.addAttribute("error", "username already exists"); 
 			return "author/register.jsp";
 		}
-		authors.create(author);
+		int r = authors.create(author);
+		if ( 0 >= r){
+			result.rejectValue("email", "", "email already exists");
+			return "author/register.jsp";
+		}
 		return "author/login.jsp";
 	}
 

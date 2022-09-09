@@ -1,62 +1,63 @@
 package com.example.app.models;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
+import java.util.UUID;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotEmpty;
 
-public class Blog extends Model{
+@Entity
+public class Blog {
 	
-	public Blog(String id, String title, String content, String author) {
-		this.id = id;
-		this.title = title;
-		this.content = content;
-		this.author = author;
-	}
-	@NotEmpty
-	public String id;
-	@NotEmpty
-	public String title;
-	@NotEmpty
-	public String content;
-	public String author;
-	
-	public Blog(ResultSet rs) {
-		try {
-			this.id = rs.getString("id");
-			this.title = rs.getString("title");
-			this.content = rs.getString("content");
-			this.author = rs.getString("author");
-		} catch (SQLException e) {}
+	@Id @GeneratedValue
+	private UUID id;
 
-	}
+	@NotEmpty
+	private String title;
 
-	public Blog(){}
+	@NotEmpty
+	private String content;
 
-	public String getAuthor() {
-        return author;
-    }
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-	
-    public String getId() {
+	@ManyToOne(cascade = CascadeType.ALL)
+	private Author author;
+
+	public UUID getId() {
 		return id;
 	}
-	public void setId(String id) {
+
+	public void setId(UUID id) {
 		this.id = id;
 	}
+
 	public String getTitle() {
 		return title;
 	}
+
 	public void setTitle(String title) {
 		this.title = title;
 	}
+
 	public String getContent() {
 		return content;
 	}
+
 	public void setContent(String content) {
 		this.content = content;
 	}
+
+	public Author getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(Author author) {
+		this.author = author;
+	}
+
+		
+	
 	
 }

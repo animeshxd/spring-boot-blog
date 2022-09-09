@@ -73,9 +73,9 @@
 			</div>
 			<div class="form-group mb-3">
 				<label class="form-label">upload file</label>
-				<input type="file" name="file" class="form-control">
+				<input type="file" name="xfile" class="form-control">
 				<div class="text-danger small">
-					<form:errors path="author.file"></form:errors>
+					<form:errors path="author.xfile"></form:errors>
 				</div>
 			</div>
 			<button class="btn">register</button>

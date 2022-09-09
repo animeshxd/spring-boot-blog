@@ -5,6 +5,7 @@ package com.example.app.author;
 // import static com.example.x.print;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -15,8 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.app.database.Manager;
 import com.example.app.models.Author;
+import com.example.app.repository.AuthorRepository;
+import com.example.app.repository.service.AuthorManager;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -25,12 +27,19 @@ import jakarta.validation.Valid;
 @RequestMapping("/author")
 public class AuthorController {
 	
-	Manager<Author> authors;
+	@Autowired
+	private AuthorRepository authors;
 
 	@Autowired
-	public void setManager(Manager<Author> authors) {
+	private AuthorManager manager;
+
+	public AuthorController() {}
+
+	public AuthorController(AuthorRepository authors, AuthorManager manager) {
 		this.authors = authors;
+		this.manager = manager;
 	}
+
 
 	@RequestMapping("/")
 	public String index(){
@@ -44,31 +53,39 @@ public class AuthorController {
 	}
 	
 	@PostMapping("/register")
-
 	public String register(@ModelAttribute("author") @Valid  Author author,
 							BindingResult result, Model model ){
 
 		// print(author.email, author.name, author.password, author.username);
 		
-		if (!author.file.getContentType().contains("image")){
+		if (!author.getXfile().getContentType().contains("image")){
 			
-			result.rejectValue("file", "file.invalid", "invalid file");
+			result.rejectValue("xfile", "xfile.invalid", "invalid file");
 			return "author/register.jsp";
 		}
 
 		if(result.hasErrors()) {
             return "author/register.jsp";
         }
+		
 
-		if(authors.read(author.username) != null){
+		if(authors.findById(author.getUsername()).isPresent()){
 			model.addAttribute("error", "username already exists"); 
 			return "author/register.jsp";
 		}
-		int r = authors.create(author);
-		if ( 0 >= r){
-			result.rejectValue("email", "", "email already exists");
+		
+		
+		try {
+			manager.save(author);
+		} catch (DataIntegrityViolationException e) {
+			result.rejectValue("email", "", "this is already exists");
+			return "author/register.jsp";
+		}catch(Exception e){
+			e.printStackTrace();
+			result.rejectValue("email", "", e.toString());
 			return "author/register.jsp";
 		}
+		
 		return "author/login.jsp";
 	}
 
@@ -85,18 +102,18 @@ public class AuthorController {
 						RedirectAttributes ra // eat all redirect attributes 
 					   )	
 	{
-		model.addAttribute("username", username);
-		model.addAttribute("password", password);
-		var author = authors.read(username);
-		if(author == null){
+		var author = authors.findById(username);
+		if(author.isEmpty()){
+			model.addAttribute("username", username);
 			model.addAttribute("error", "username does not exists"); 
 			return "author/login.jsp";
 		}		
-		if (!author.password.equals(password)){
+		if (!author.get().getPassword().equals(password)){
+			model.addAttribute("username", username);
 			model.addAttribute("error", "password mismatch"); 
 			return "author/login.jsp";
 		}
-		req.getSession().setAttribute("author", author);
+		req.getSession().setAttribute("author", author.get());
 		return "redirect:../blog/";
 	}
 

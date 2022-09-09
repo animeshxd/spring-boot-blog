@@ -118,7 +118,7 @@
 				
 				<p>${fn:escapeXml(fn:substring(content, 0, 200))}</p>
 				<span>
-					<span class="">${i.author} </span>
+					<span class="">${i.author.name} </span>
 					<a class="custom" href="delete?id=${i.id}">delete</a>
 					<a class="custom" href="edit?id=${i.id}">edit</a>
 				</span>

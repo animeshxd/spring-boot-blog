@@ -12,27 +12,38 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.example.app.database.Manager;
 import com.example.app.models.Author;
 import com.example.app.models.Blog;
+import com.example.app.repository.AuthorRepository;
+import com.example.app.repository.BlogRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+import static com.example.app.x.print;
+
 @Controller
 @RequestMapping("/blog")
 public class App {
-	private Manager<Blog> blogs;
+	
+	@Autowired
+	private BlogRepository blogs;
 
 	@Autowired
-	public void setBlogs(Manager<Blog> blogs) {
-		this.blogs = blogs;
-	}
+	private AuthorRepository authors;
+
+	
+
+	final private String INDEX = "blog/index.jsp";
+	final private String CREATE = "blog/create.jsp";
+	final private String POST = "blog/post.jsp";
+	final private String R_LOGIN = "redirect:../author/login";
+
 
 	@GetMapping("/")
 	public String index(Model model) {
-		model.addAttribute("blogs", blogs.list());
-		return "blog/index.jsp";
+		model.addAttribute("blogs", blogs.findAll());
+		return INDEX;
 	}
 	
 	
@@ -40,19 +51,14 @@ public class App {
 	public String create(Model model, HttpServletRequest request) {
 		var author = request.getSession().getAttribute("author");
 		if (author == null){
-			return "redirect:../author/login";
+			return R_LOGIN;
 		}
-		var id = UUID.randomUUID().toString();
-		model.addAttribute("id", id);
-		var blog = blogs.read(id);
-		if (blog != null)
-			model.addAttribute("blog", blog);
-		return "blog/create.jsp";
+		return CREATE;
 	}
 	
 	@PostMapping("/create")
 	public String addblog(@ModelAttribute("blog") @Valid Blog blog, Model model, 
-						HttpServletRequest request ,
+						HttpServletRequest request,
 						RedirectAttributes ra // eat all current scope params for redirect
 						)
 	
@@ -60,49 +66,91 @@ public class App {
 	{
 		var author = (Author)request.getSession().getAttribute("author");
 		if (author == null){
-			return "redirect:../author/login";
+			print("user is null");
+			return R_LOGIN;
+		}
+		var author_ = authors.findById(author.getUsername());
+
+		if (author_.isEmpty()){
+			print("2: user is null");
+			return R_LOGIN;
+		}
+		
+		if (!author.equals(author_.get())){
+			print("3: user is mismatch");
+			
+			return R_LOGIN;
 		}
 
-		blog.setAuthor(author.username);
-		blogs.create(blog);
+		blog.setAuthor(author_.get());
+		blogs.save(blog);
 		model.addAttribute("success", true);
-		return "blog/post.jsp";
+		return POST;
 	}
 	
 	@GetMapping("/delete")
-	public String delete(@RequestParam("id") String id, Model model) throws Exception {
-		var blog = blogs.delete(id);
-		if (blog == 0) {
-			model.addAttribute("success", false);
-		}else {
-			model.addAttribute("success", true);
+	public String delete(@RequestParam("id") UUID id, Model model, HttpServletRequest request) throws Exception {
+		var blog = blogs.findById(id);
+		if (blog.isEmpty()){
+			return INDEX;
 		}
-		model.addAttribute("blogs", blogs.list());
-		return "blog/index.jsp";
+		
+		if(!blog.get().getAuthor().equals(request.getSession().getAttribute("author"))){
+			return R_LOGIN;
+		}
+		try {
+			blogs.deleteById(id);
+		}catch(Exception e){
+			model.addAttribute("success", false);
+		}
+		model.addAttribute("success", true);
+		model.addAttribute("blogs", blogs.findAll());
+		return INDEX;
 	}
 	
 	@GetMapping("/post")
-	public String viewpost(@RequestParam("id") String id, Model model) {
-		var blog = blogs.read(id);
-		if (blog == null) {
-			return "blog/index.jsp";
+	public String viewpost(@RequestParam("id") UUID id, Model model) {
+		var blog = blogs.findById(id);
+		if (blog == null || blog.isEmpty()) {
+			return INDEX;
 		}
-		model.addAttribute("blog", blog);
-		return "blog/post.jsp";
+		model.addAttribute("blog", blog.get());
+		return POST;
 	}
 
 
 	@GetMapping("/edit")
-	public String editPost(@RequestParam("id") String id, Model model){
-		var blog = blogs.read(id);
-		model.addAttribute("id", id);
-		if (blog == null){
-			return "blog/create.jsp";
+	public String editPost(@RequestParam("id") UUID id, Model model, HttpServletRequest request){
+		var blog = blogs.findById(id);
+		if (blog.isEmpty()){
+			return CREATE;
 		}
-		model.addAttribute("blog", blog);
-		return "blog/create.jsp";
-
+		if(!blog.get().getAuthor().equals(request.getSession().getAttribute("author"))){
+			return R_LOGIN;
+		}
+		model.addAttribute("blog", blog.get());
+		return CREATE;
 	}
+
+
+	public void setBlogs(BlogRepository blogs) {
+		this.blogs = blogs;
+	}
+
+
+	public void setAuthors(AuthorRepository authors) {
+		this.authors = authors;
+	}
+
+
+	public App(BlogRepository blogs, AuthorRepository authors) {
+		this.blogs = blogs;
+		this.authors = authors;
+	}
+
+
+	public App() {}
+	
 	
 }
 

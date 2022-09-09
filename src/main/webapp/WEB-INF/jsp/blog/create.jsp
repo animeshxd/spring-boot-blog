@@ -35,7 +35,7 @@
 <body>
 	<div class="container">
 		<form action="create" method="post">
-			<input type="text" name="id" value="${id}" hidden/>
+			<input type="text" name="id" value="${blog.id}" hidden/>
 			<label class="form-label">Title: </label> <input class="form-control" type="text" name="title" required="required" value="${blog.title}"/>
 			<label class="form-label">Content</label>: 
 			<textarea class="form-control h-25" rows="10" cols="70" name="content" required="required">${blog.content}</textarea>
